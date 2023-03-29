@@ -2,8 +2,12 @@
 // header
 get_header();
 ?>
+<div class="container">
+    <div class="row">
+        <h1 class="mb-5"><?php bloginfo( 'name' ); ?></h1>
+    </div>
+</div>
 
-<h1><?php bloginfo( 'name' ); ?></h1>
 
 <?php if ( have_posts() ) : ?>
 <div class="container">

@@ -12,6 +12,6 @@
 - [x] filter cpt document title if metabox is set
 
 ##### Step 5
-- [ ] add `books` to `wp_query`
-- [ ] show posts and cpt posts in loop `index.php`
-- [ ] template card.php, card-book.php
+- [x] add `books` to `wp_query`
+- [x] show posts and cpt posts in loop `index.php`
+- [x] template card.php, card-book.php

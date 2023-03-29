@@ -235,3 +235,15 @@ function gamelounge_wp_title( $title ) {
 	return $title;
 }
 add_filter( 'pre_get_document_title', 'gamelounge_wp_title', 10, 2 );
+
+// pre_get_posts filter
+function gamelounge_query_homepage($query){
+
+	$game_query =	!is_admin() && $query->is_main_query() && $query->is_home;
+
+	if($game_query){
+		$game_books = array('post', 'book');
+		$query->set('post_type', $game_books);
+	}
+}
+add_action('pre_get_posts', 'gamelounge_query_homepage', 10, 1);

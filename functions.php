@@ -76,7 +76,7 @@ function gl_custom_post_type() {
 		'label'                 => __( 'Book', 'text_domain' ),
 		'description'           => __( 'All world books', 'text_domain' ),
 		'labels'                => $labels,
-		'supports'              => array( 'title', 'editor' ),
+		'supports'              => array( 'title', 'editor', 'excerpt' ),
 		'hierarchical'          => false,
 		'public'                => true,
 		'show_ui'               => true,

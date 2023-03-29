@@ -94,3 +94,144 @@ function gl_custom_post_type() {
 
 }
 add_action( 'init', 'gl_custom_post_type', 0 );
+
+// tagline metabox
+// get_post_meta( get_the_ID(), 'gl_taglinetagline', true )
+class Game_Lounge_Tagline {
+	private $config = '{"title":"Your Tagline","prefix":"gl_tagline","domain":"gamelounge","class_name":"Game_Lounge_Tagline","post-type":["post"],"context":"normal","priority":"default","cpt":"book","fields":[{"type":"textarea","label":"Tagline","rows":"3","id":"gl_taglinetagline"}]}';
+
+	public function __construct() {
+		$this->config = json_decode( $this->config, true );
+		$this->process_cpts();
+		add_action( 'add_meta_boxes', [ $this, 'add_meta_boxes' ] );
+		add_action( 'save_post', [ $this, 'save_post' ] );
+	}
+
+	public function process_cpts() {
+		if ( !empty( $this->config['cpt'] ) ) {
+			if ( empty( $this->config['post-type'] ) ) {
+				$this->config['post-type'] = [];
+			}
+			$parts = explode( ',', $this->config['cpt'] );
+			$parts = array_map( 'trim', $parts );
+			$this->config['post-type'] = array_merge( $this->config['post-type'], $parts );
+		}
+	}
+
+	public function add_meta_boxes() {
+		foreach ( $this->config['post-type'] as $screen ) {
+			add_meta_box(
+				sanitize_title( $this->config['title'] ),
+				$this->config['title'],
+				[ $this, 'add_meta_box_callback' ],
+				$screen,
+				$this->config['context'],
+				$this->config['priority']
+			);
+		}
+	}
+
+	public function save_post( $post_id ) {
+		foreach ( $this->config['fields'] as $field ) {
+			switch ( $field['type'] ) {
+				default:
+					if ( isset( $_POST[ $field['id'] ] ) ) {
+						$sanitized = sanitize_text_field( $_POST[ $field['id'] ] );
+						update_post_meta( $post_id, $field['id'], $sanitized );
+					}
+			}
+		}
+	}
+
+	public function add_meta_box_callback() {
+		$this->fields_table();
+	}
+
+	private function fields_table() {
+		?><table class="form-table" role="presentation">
+		<tbody><?php
+		foreach ( $this->config['fields'] as $field ) {
+			?><tr>
+			<th scope="row"><?php $this->label( $field ); ?></th>
+			<td><?php $this->field( $field ); ?></td>
+			</tr><?php
+		}
+		?></tbody>
+		</table><?php
+	}
+
+	private function label( $field ) {
+		switch ( $field['type'] ) {
+			default:
+				printf(
+					'<label class="" for="%s">%s</label>',
+					$field['id'], $field['label']
+				);
+		}
+	}
+
+	private function field( $field ) {
+		switch ( $field['type'] ) {
+			case 'textarea':
+				$this->textarea( $field );
+				break;
+			default:
+				$this->input( $field );
+		}
+	}
+
+	private function input( $field ) {
+		printf(
+			'<input class="regular-text %s" id="%s" name="%s" %s type="%s" value="%s">',
+			isset( $field['class'] ) ? $field['class'] : '',
+			$field['id'], $field['id'],
+			isset( $field['pattern'] ) ? "pattern='{$field['pattern']}'" : '',
+			$field['type'],
+			$this->value( $field )
+		);
+	}
+
+	private function textarea( $field ) {
+		printf(
+			'<textarea class="regular-text" id="%s" name="%s" rows="%d">%s</textarea>',
+			$field['id'], $field['id'],
+			isset( $field['rows'] ) ? $field['rows'] : 5,
+			$this->value( $field )
+		);
+	}
+
+	private function value( $field ) {
+		global $post;
+		if ( metadata_exists( 'post', $post->ID, $field['id'] ) ) {
+			$value = get_post_meta( $post->ID, $field['id'], true );
+		} else if ( isset( $field['default'] ) ) {
+			$value = $field['default'];
+		} else {
+			return '';
+		}
+		return str_replace( '\u0027', "'", $value );
+	}
+
+}
+new Game_Lounge_Tagline;
+
+// document title filter
+// get tagline instead of default title
+function gamelounge_wp_title( $title ) {
+	if ( is_feed() ) {
+		return $title;
+	}
+
+	// Add the blog description for the home/front page.
+	$site_description = get_post_meta( get_the_ID(), 'gl_taglinetagline', true );
+	if ( $site_description && 'book' == get_post_type() && (!is_404()) ) {
+		$title = $site_description;
+	}
+
+	// Add the blog name - usable in some cases
+	// $title .= get_bloginfo( 'name', 'display' );
+
+
+	return $title;
+}
+add_filter( 'pre_get_document_title', 'gamelounge_wp_title', 10, 2 );

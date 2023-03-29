@@ -41,7 +41,7 @@ add_action('wp_enqueue_scripts', function()  {
 });
 
 // Register Book CPT
-function custom_post_type() {
+function gl_custom_post_type() {
 
 	$labels = array(
 		'name'                  => _x( 'Books', 'Book General Name', 'text_domain' ),
@@ -93,4 +93,4 @@ function custom_post_type() {
 	register_post_type( 'book', $args );
 
 }
-add_action( 'init', 'custom_post_type', 0 );
+add_action( 'init', 'gl_custom_post_type', 0 );
